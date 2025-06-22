@@ -1,5 +1,6 @@
 import 'package:flashcard_quiz_app/constants/app_colors.dart';
 import 'package:flashcard_quiz_app/data/flashcards_data.dart';
+import 'package:flashcard_quiz_app/widgeds/custom_button.dart';
 import 'package:flutter/material.dart';
 
 class FlashcardScreen extends StatefulWidget {
@@ -12,9 +13,15 @@ class FlashcardScreen extends StatefulWidget {
 class _FlashcardScreenState extends State<FlashcardScreen> {
   int currentIndex = 0;
   bool showAnswer = false;
+  int? selectedOption;
+  bool showResult = false;
 
   @override
   Widget build(BuildContext context) {
+    final flashcard = FlashcardData.flashcards[currentIndex];
+    final options = flashcard['options'] as List<String>?;
+    final correctAnswer = flashcard['correctAnswer'] as String?;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -33,105 +40,100 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      FlashcardData.flashcards[currentIndex]['question']!,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        color: AppColors.textColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      flashcard['question']!,
+                      style: const TextStyle(fontSize: 24, color: AppColors.textColor),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
-                    if (showAnswer)
-                      Text(
-                        FlashcardData.flashcards[currentIndex]['answer']!,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Color.fromARGB(255, 68, 110, 110),
+                    if (options != null && !showAnswer) ...[
+                      ...options.asMap().entries.map((entry) {
+                        int idx = entry.key;
+                        String option = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: CustomButton(
+                            text: 'Option ${String.fromCharCode(65 + idx)}: $option',
+                            onPressed: () {
+                              setState(() {
+                                selectedOption = idx;
+                                showResult = true;
+                              });
+                            },
+                            backgroundColor: selectedOption == idx
+                                ? (showResult && option == correctAnswer
+                                    ? Colors.green
+                                    : Colors.red)
+                                : AppColors.secondaryColor,
+                          ),
+                        );
+                      }).toList(),
+                      const SizedBox(height: 20),
+                      if (showResult)
+                        Text(
+                          selectedOption != null && options[selectedOption!] == correctAnswer
+                              ? 'Correct!'
+                              : 'Wrong! The correct answer is: $correctAnswer',
+                          style: const TextStyle(fontSize: 18, color: AppColors.textColor),
                         ),
+                    ] else if (showAnswer && correctAnswer != null) ...[
+                      Text(
+                        correctAnswer,
+                        style: const TextStyle(fontSize: 20, color: AppColors.textColor),
                         textAlign: TextAlign.center,
                       ),
+                    ],
                     const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        minimumSize: const Size(150, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        CustomButton(
+                          text: 'Previous',
+                          onPressed: currentIndex > 0
+                              ? () {
+                                  setState(() {
+                                    currentIndex--;
+                                    showAnswer = false;
+                                    selectedOption = null;
+                                    showResult = false;
+                                  });
+                                }
+                              : null,
+                          enabled: currentIndex > 0,
+                          backgroundColor: AppColors.secondaryColor,
                         ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          showAnswer = !showAnswer;
-                        });
-                      },
-                      child: Text(
-                        showAnswer ? 'Hide Answer' : 'Show Answer',
-                        style: const TextStyle(
-                          color: AppColors.backgroundColor,
-                          fontSize: 16,
+                        CustomButton(
+                          text: showAnswer ? 'Hide Answer' : 'Show Answer',
+                          onPressed: () {
+                            setState(() {
+                              showAnswer = !showAnswer;
+                              if (!showAnswer) {
+                                selectedOption = null;
+                                showResult = false;
+                              }
+                            });
+                          },
+                          backgroundColor: AppColors.primaryColor,
                         ),
-                      ),
+                        CustomButton(
+                          text: 'Next',
+                          onPressed: currentIndex < FlashcardData.flashcards.length - 1
+                              ? () {
+                                  setState(() {
+                                    currentIndex++;
+                                    showAnswer = false;
+                                    selectedOption = null;
+                                    showResult = false;
+                                  });
+                                }
+                              : null,
+                          enabled: currentIndex < FlashcardData.flashcards.length - 1,
+                          backgroundColor: AppColors.secondaryColor,
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondaryColor,
-                    minimumSize: const Size(120, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  onPressed:
-                      currentIndex > 0
-                          ? () {
-                            setState(() {
-                              currentIndex--;
-                              showAnswer = false;
-                            });
-                          }
-                          : null,
-                  child: const Text(
-                    'Previous',
-                    style: TextStyle(
-                      color: AppColors.backgroundColor,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondaryColor,
-                    minimumSize: const Size(120, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  onPressed:
-                      currentIndex < FlashcardData.flashcards.length - 1
-                          ? () {
-                            setState(() {
-                              currentIndex++;
-                              showAnswer = false;
-                            });
-                          }
-                          : null,
-                  child: const Text(
-                    'Next',
-                    style: TextStyle(
-                      color: AppColors.backgroundColor,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
