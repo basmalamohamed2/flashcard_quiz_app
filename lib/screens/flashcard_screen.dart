@@ -1,6 +1,6 @@
 import 'package:flashcard_quiz_app/constants/app_colors.dart';
 import 'package:flashcard_quiz_app/data/flashcards_data.dart';
-import 'package:flashcard_quiz_app/widgeds/custom_button.dart';
+import 'package:flashcard_quiz_app/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 
 class FlashcardScreen extends StatefulWidget {

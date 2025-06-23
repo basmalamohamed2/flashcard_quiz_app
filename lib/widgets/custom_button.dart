@@ -1,17 +1,16 @@
-// lib/widgets/custom_button.dart
 import 'package:flashcard_quiz_app/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback? onPressed; // جعل onPressed اختياريًا
+  final VoidCallback? onPressed; 
   final Color backgroundColor;
   final bool enabled;
 
   const CustomButton({
     super.key,
     required this.text,
-    this.onPressed, // الآن يمكن أن يكون null
+    this.onPressed,
     this.backgroundColor = AppColors.primaryColor,
     this.enabled = true,
   });
