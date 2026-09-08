@@ -1,54 +1,78 @@
 # QuizDeck
 
-A polished, cross-platform flashcard quiz app built with **Flutter**. Create your own
-flashcards, quiz yourself with instant feedback, and track your score — all with a
-clean, modern UI.
+A Flutter flashcard and quiz app that lets you build decks of flashcards and study them using a spaced repetition system (Leitner boxes).
 
 ## Features
 
-- **Animated splash screen** with a custom brand identity
-- **Interactive quiz mode**: progress bar, per-question feedback (correct/incorrect
-  highlighting), and a results screen with a score summary
-- **Full flashcard management**: add, edit, and delete flashcards with confirmation
-  dialogs and inline validation
-- **Custom design system**: shared color palette, typography (Google Fonts —
-  Poppins & Inter), and reusable UI components (buttons, text fields, cards, chips)
-- Runs on **Android, iOS, Web, Windows, macOS, and Linux** from a single codebase
+- **Deck management**: create and delete decks, each with a name and a custom color.
+- **Flashcard management**: add/edit/delete multiple-choice cards (question + 3 options + correct answer).
+- **Bulk import from text**: import a batch of flashcards at once using a simple pipe-delimited format:
+  ```
+  Question | Option 1 | Option 2 | Option 3 | Correct Answer
+  ```
+  Blank lines and lines starting with `#` are treated as comments and skipped.
+- **Interactive quiz mode**: run a quiz on a deck's cards and get a score at the end.
+- **Attempt history & statistics**: the last 50 quiz attempts are saved, plus overall stats (total cards, performance, etc.).
+- **Dark mode**: toggle between light and dark themes, with the preference persisted.
+- **Local persistence**: all data (decks, cards, history, settings) is stored locally on-device via `shared_preferences`.
 
 ## Tech Stack
 
-- [Flutter](https://flutter.dev) / Dart
-- [google_fonts](https://pub.dev/packages/google_fonts) for typography
-- Material 3 design components
+- **Framework**: Flutter
+- **State management**: Provider (`ChangeNotifier`)
+- **Storage**: `shared_preferences` (local JSON storage)
+- **ID generation**: `uuid`
 
-## Project Structure
+### Folder Structure
 
 ```
 lib/
-├── constants/        # Color palette & text styles (design system)
-├── models/           # Flashcard data model
-├── data/             # In-memory flashcard repository
-├── widgets/          # Reusable UI components (buttons, tiles, cards, etc.)
-├── screens/          # App screens (splash, home, quiz, results, manage, form)
-└── main.dart         # App entry point & theming
+├── main.dart                  # App entry point
+├── constants/                 # Colors, text styles, theme, and extensions
+├── models/                    # FlashcardModel, DeckModel, QuizAttemptModel
+├── providers/                 # AppProvider for state management and persistence
+├── screens/                   # App screens (home, deck, quiz, settings...)
+├── widgets/                   # Reusable UI components
+├── utils/                     # Helpers such as flashcard_parser
+└── test/                      # Tests (SRS logic + widget test)
 ```
+
+### Key Screens
+
+| Screen | Purpose |
+|---|---|
+| `splash_screen` | App splash/loading screen |
+| `home_screen` | List of decks |
+| `add_deck_screen` | Create a new deck |
+| `deck_detail_screen` | Deck details and its cards |
+| `flashcard_form_screen` | Add/edit a flashcard |
+| `import_deck_screen` | Import cards from text |
+| `flashcard_screen` | Run the quiz |
+| `quiz_result_screen` | Quiz results |
+| `statistics_screen` | Overall statistics |
+| `settings_screen` | Settings (dark mode, etc.) |
+
+## Requirements
+
+- Flutter SDK
+- The following packages in `pubspec.yaml`:
+  - `provider`
+  - `shared_preferences`
+  - `uuid`
+
+> Note: the uploaded archive contains only the `lib/` folder. Make sure you have a `pubspec.yaml` that declares the package name `flashcard_quiz_app` (used in the imports) along with the dependencies above before running the project.
 
 ## Getting Started
 
-1. Install the [Flutter SDK](https://docs.flutter.dev/get-started/install).
-2. Install dependencies:
-   ```bash
-   flutter pub get
-   ```
-3. Run the app:
-   ```bash
-   flutter run
-   ```
+```bash
+flutter pub get
+flutter run
+```
 
-## What This Project Demonstrates
+## Running Tests
 
-- Clean, componentized Flutter architecture (models, data layer, reusable widgets)
-- Custom theming and a consistent design system
-- State management with `StatefulWidget` and `setState`
-- Form validation and user feedback (snackbars, confirmation dialogs)
-- Attention to UX details: empty states, disabled states, and animated transitions
+```bash
+flutter test
+```
+
+There's a dedicated test for the spaced repetition logic (`flashcard_srs_test.dart`) plus a basic widget test.

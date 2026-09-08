@@ -1,48 +1,40 @@
-import 'package:flashcard_quiz_app/constants/app_colors.dart';
-import 'package:flashcard_quiz_app/constants/app_text_styles.dart';
-import 'package:flashcard_quiz_app/data/flashcards_data.dart';
-import 'package:flashcard_quiz_app/widgets/action_card.dart';
-import 'package:flashcard_quiz_app/widgets/stat_chip.dart';
+import 'package:flashcard_quiz_app/providers/app_provider.dart';
+import 'package:flashcard_quiz_app/screens/add_deck_screen.dart';
+import 'package:flashcard_quiz_app/screens/deck_detail_screen.dart';
+import 'package:flashcard_quiz_app/screens/import_deck_screen.dart';
+import 'package:flashcard_quiz_app/screens/settings_screen.dart';
+import 'package:flashcard_quiz_app/screens/statistics_screen.dart';
+import 'package:flashcard_quiz_app/widgets/deck_card.dart';
+import 'package:flashcard_quiz_app/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'flashcard_screen.dart';
-import 'manage_flashcards_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:flashcard_quiz_app/constants/app_colors.dart';
+import 'package:flashcard_quiz_app/constants/app_text_styles.dart';
+import 'package:flashcard_quiz_app/widgets/stat_chip.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  Future<void> _startQuiz() async {
-    if (FlashcardData.flashcards.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Add a flashcard first to start the quiz.'),
-        ),
-      );
-      return;
-    }
+  Future<void> _addDeck(BuildContext context) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const FlashcardScreen()),
+      MaterialPageRoute(builder: (_) => const AddDeckScreen()),
     );
-    if (mounted) setState(() {});
   }
 
-  Future<void> _openManageFlashcards() async {
+  Future<void> _importDeck(BuildContext context) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const ManageFlashcardsScreen()),
+      MaterialPageRoute(builder: (_) => const ImportDeckScreen()),
     );
-    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final total = FlashcardData.flashcards.length;
+    final provider = context.watch<AppProvider>();
+    final decks = provider.decks;
+    final totalCards = provider.totalCards;
 
     return Scaffold(
       body: SafeArea(
@@ -52,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
                 decoration: const BoxDecoration(
                   gradient: AppColors.heroLinearGradient,
                   borderRadius: BorderRadius.only(
@@ -80,13 +72,41 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 24,
                           ),
                         ),
-                        StatChip(
-                          icon: Icons.layers_rounded,
-                          label: '$total card${total == 1 ? '' : 's'}',
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed:
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const StatisticsScreen(),
+                                    ),
+                                  ),
+                              icon: const Icon(
+                                Icons.bar_chart_rounded,
+                                color: Colors.white,
+                              ),
+                              tooltip: 'Statistics',
+                            ),
+                            IconButton(
+                              onPressed:
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const SettingsScreen(),
+                                    ),
+                                  ),
+                              icon: const Icon(
+                                Icons.settings_rounded,
+                                color: Colors.white,
+                              ),
+                              tooltip: 'Settings',
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     Text(
                       'QuizDeck',
                       style: GoogleFonts.poppins(
@@ -97,44 +117,91 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Test your knowledge and grow your own\nflashcard deck.',
+                      'Organize your flashcards into decks and\ntest your knowledge.',
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         height: 1.4,
                         color: Colors.white.withOpacity(0.85),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    StatChip(
+                      icon: Icons.layers_rounded,
+                      label:
+                          '${decks.length} deck${decks.length == 1 ? '' : 's'} · $totalCards card${totalCards == 1 ? '' : 's'}',
+                    ),
                   ],
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
+                child: Text(
+                  'Your decks',
+                  style: AppTextStyles.heading1(context),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Row(
                   children: [
-                    Text('Get started', style: AppTextStyles.heading1),
-                    const SizedBox(height: 16),
-                    ActionCard(
-                      icon: Icons.play_circle_fill_rounded,
-                      title: 'Start Quiz',
-                      subtitle:
-                          total > 0
-                              ? 'Answer $total question${total == 1 ? '' : 's'} and test yourself'
-                              : 'Add some flashcards to begin',
-                      color: AppColors.primary,
-                      onTap: _startQuiz,
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _importDeck(context),
+                        icon: const Icon(Icons.upload_file_rounded, size: 18),
+                        label: const Text('Import File'),
+                      ),
                     ),
-                    const SizedBox(height: 14),
-                    ActionCard(
-                      icon: Icons.dashboard_customize_rounded,
-                      title: 'Manage Flashcards',
-                      subtitle: 'Add, edit or remove your flashcards',
-                      color: AppColors.secondary,
-                      onTap: _openManageFlashcards,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () => _addDeck(context),
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: const Text('New Deck'),
+                        style: TextButton.styleFrom(
+                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
+              if (decks.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: EmptyState(
+                    icon: Icons.style_outlined,
+                    title: 'No decks yet',
+                    message:
+                        'Create a deck or import questions from a file to get started.',
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Column(
+                    children:
+                        decks
+                            .map(
+                              (deck) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: DeckCard(
+                                  deck: deck,
+                                  onTap:
+                                      () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => DeckDetailScreen(
+                                                deckId: deck.id,
+                                              ),
+                                        ),
+                                      ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                ),
             ],
           ),
         ),

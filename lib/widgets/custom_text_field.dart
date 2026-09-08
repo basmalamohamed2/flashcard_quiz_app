@@ -1,5 +1,6 @@
 import 'package:flashcard_quiz_app/constants/app_colors.dart';
 import 'package:flashcard_quiz_app/constants/app_text_styles.dart';
+import 'package:flashcard_quiz_app/constants/context_extensions.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
@@ -22,23 +23,23 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = hasError ? AppColors.error : AppColors.border;
+    final borderColor = hasError ? AppColors.error : context.colorBorder;
     final focusColor = hasError ? AppColors.error : AppColors.primary;
 
     return TextField(
       controller: controller,
       enabled: enabled,
       maxLines: maxLines,
-      style: AppTextStyles.body,
+      style: AppTextStyles.body(context),
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon:
             icon != null
-                ? Icon(icon, color: AppColors.textSecondary, size: 20)
+                ? Icon(icon, color: context.colorTextSecondary, size: 20)
                 : null,
         filled: true,
-        fillColor: AppColors.surface,
-        labelStyle: AppTextStyles.bodySecondary,
+        fillColor: context.colorSurface,
+        labelStyle: AppTextStyles.bodySecondary(context),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
@@ -57,7 +58,7 @@ class CustomTextField extends StatelessWidget {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: context.colorBorder),
         ),
       ),
     );

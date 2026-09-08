@@ -1,22 +1,24 @@
 import 'package:flashcard_quiz_app/constants/app_colors.dart';
 import 'package:flashcard_quiz_app/constants/app_text_styles.dart';
-import 'package:flashcard_quiz_app/data/flashcards_data.dart';
 import 'package:flashcard_quiz_app/models/flashcard_model.dart';
+import 'package:flashcard_quiz_app/providers/app_provider.dart';
 import 'package:flashcard_quiz_app/widgets/custom_button.dart';
 import 'package:flashcard_quiz_app/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 class FlashcardFormScreen extends StatefulWidget {
-  final int? editIndex;
+  final String deckId;
   final FlashcardModel? existingFlashcard;
 
   const FlashcardFormScreen({
     super.key,
-    this.editIndex,
+    required this.deckId,
     this.existingFlashcard,
   });
 
-  bool get isEditing => editIndex != null && existingFlashcard != null;
+  bool get isEditing => existingFlashcard != null;
 
   @override
   State<FlashcardFormScreen> createState() => _FlashcardFormScreenState();
@@ -96,7 +98,7 @@ class _FlashcardFormScreenState extends State<FlashcardFormScreen> {
         _selectedCorrectAnswer != null;
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_isValid) {
       setState(() => _showValidation = true);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,19 +111,27 @@ class _FlashcardFormScreenState extends State<FlashcardFormScreen> {
       return;
     }
 
-    final flashcard = FlashcardModel(
-      question: _questionController.text.trim(),
-      options: _currentOptions.map((option) => option.trim()).toList(),
-      correctAnswer: _selectedCorrectAnswer!.trim(),
-    );
+    final provider = context.read<AppProvider>();
 
     if (widget.isEditing) {
-      FlashcardData.updateFlashcard(widget.editIndex!, flashcard);
+      final updated = widget.existingFlashcard!.copyWith(
+        question: _questionController.text.trim(),
+        options: _currentOptions.map((option) => option.trim()).toList(),
+        correctAnswer: _selectedCorrectAnswer!.trim(),
+      );
+      await provider.updateFlashcard(widget.deckId, updated);
     } else {
-      FlashcardData.addFlashcard(flashcard);
+      final newCard = FlashcardModel(
+        id: const Uuid().v4(),
+        question: _questionController.text.trim(),
+        options: _currentOptions.map((option) => option.trim()).toList(),
+        correctAnswer: _selectedCorrectAnswer!.trim(),
+        nextReview: DateTime.now(),
+      );
+      await provider.addFlashcard(widget.deckId, newCard);
     }
 
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -133,7 +143,7 @@ class _FlashcardFormScreenState extends State<FlashcardFormScreen> {
       appBar: AppBar(
         title: Text(
           widget.isEditing ? 'Edit Flashcard' : 'Add Flashcard',
-          style: AppTextStyles.heading2,
+          style: AppTextStyles.heading2(context),
         ),
       ),
       body: SingleChildScrollView(
@@ -141,7 +151,7 @@ class _FlashcardFormScreenState extends State<FlashcardFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('QUESTION', style: AppTextStyles.caption),
+            Text('QUESTION', style: AppTextStyles.caption(context)),
             const SizedBox(height: 8),
             CustomTextField(
               controller: _questionController,
@@ -152,7 +162,7 @@ class _FlashcardFormScreenState extends State<FlashcardFormScreen> {
                   _showValidation && _questionController.text.trim().isEmpty,
             ),
             const SizedBox(height: 20),
-            Text('OPTIONS', style: AppTextStyles.caption),
+            Text('OPTIONS', style: AppTextStyles.caption(context)),
             const SizedBox(height: 8),
             CustomTextField(
               controller: _option1Controller,
@@ -178,7 +188,7 @@ class _FlashcardFormScreenState extends State<FlashcardFormScreen> {
                   _showValidation && _option3Controller.text.trim().isEmpty,
             ),
             const SizedBox(height: 20),
-            Text('CORRECT ANSWER', style: AppTextStyles.caption),
+            Text('CORRECT ANSWER', style: AppTextStyles.caption(context)),
             const SizedBox(height: 10),
             if (hasAnyOption)
               Wrap(
@@ -201,12 +211,11 @@ class _FlashcardFormScreenState extends State<FlashcardFormScreen> {
                               setState(() => _selectedCorrectAnswer = option);
                             },
                             selectedColor: AppColors.primary,
-                            backgroundColor: AppColors.surface,
                             labelStyle: TextStyle(
                               color:
                                   selected
                                       ? Colors.white
-                                      : AppColors.textPrimary,
+                                      : AppTextStyles.body(context).color,
                               fontWeight: FontWeight.w600,
                             ),
                             shape: RoundedRectangleBorder(
@@ -215,7 +224,7 @@ class _FlashcardFormScreenState extends State<FlashcardFormScreen> {
                                 color:
                                     selected
                                         ? AppColors.primary
-                                        : AppColors.border,
+                                        : AppColors.disabled,
                               ),
                             ),
                           );
@@ -225,7 +234,7 @@ class _FlashcardFormScreenState extends State<FlashcardFormScreen> {
             else
               Text(
                 'Fill in the options above to choose the correct answer.',
-                style: AppTextStyles.bodySecondary,
+                style: AppTextStyles.bodySecondary(context),
               ),
             const SizedBox(height: 32),
             CustomButton(

@@ -1,7 +1,9 @@
 import 'package:flashcard_quiz_app/constants/app_colors.dart';
+import 'package:flashcard_quiz_app/providers/app_provider.dart';
+import 'package:flashcard_quiz_app/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'home_screen.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,6 +17,9 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _controller;
   late final Animation<double> _fade;
   late final Animation<double> _scale;
+
+  bool _minTimeElapsed = false;
+  bool _navigated = false;
 
   @override
   void initState() {
@@ -30,21 +35,27 @@ class _SplashScreenState extends State<SplashScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 2200), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 500),
-            pageBuilder:
-                (_, animation, __) => FadeTransition(
-                  opacity: animation,
-                  child: const HomeScreen(),
-                ),
-          ),
-        );
-      }
+    Future.delayed(const Duration(milliseconds: 1800), () {
+      _minTimeElapsed = true;
+      _tryNavigate();
     });
+  }
+
+  void _tryNavigate() {
+    if (_navigated || !mounted) return;
+    final loaded = context.read<AppProvider>().isLoaded;
+    if (_minTimeElapsed && loaded) {
+      _navigated = true;
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 500),
+          pageBuilder:
+              (_, animation, __) =>
+                  FadeTransition(opacity: animation, child: const HomeScreen()),
+        ),
+      );
+    }
   }
 
   @override
@@ -55,6 +66,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Rebuild (and re-check) whenever the provider finishes loading.
+    context.watch<AppProvider>();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _tryNavigate());
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.heroLinearGradient),

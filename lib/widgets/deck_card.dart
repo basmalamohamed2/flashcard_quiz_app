@@ -1,25 +1,20 @@
 import 'package:flashcard_quiz_app/constants/app_text_styles.dart';
 import 'package:flashcard_quiz_app/constants/context_extensions.dart';
+import 'package:flashcard_quiz_app/models/deck_model.dart';
 import 'package:flutter/material.dart';
 
-class ActionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
+class DeckCard extends StatelessWidget {
+  final DeckModel deck;
   final VoidCallback onTap;
 
-  const ActionCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    required this.onTap,
-  });
+  const DeckCard({super.key, required this.deck, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final color = Color(deck.colorValue);
+    final dueCount = deck.cards.where((c) => c.isDue).length;
+    final cardCount = deck.cards.length;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
@@ -43,19 +38,23 @@ class ActionCard extends StatelessWidget {
               height: 52,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: color, size: 26),
+              child: Icon(Icons.style_rounded, color: color, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppTextStyles.heading2(context)),
+                  Text(deck.name, style: AppTextStyles.heading2(context)),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: AppTextStyles.bodySecondary(context)),
+                  Text(
+                    '$cardCount card${cardCount == 1 ? '' : 's'}'
+                    '${dueCount > 0 ? ' · $dueCount due for review' : ''}',
+                    style: AppTextStyles.bodySecondary(context),
+                  ),
                 ],
               ),
             ),

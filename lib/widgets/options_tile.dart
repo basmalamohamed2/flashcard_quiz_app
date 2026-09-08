@@ -1,5 +1,6 @@
 import 'package:flashcard_quiz_app/constants/app_colors.dart';
 import 'package:flashcard_quiz_app/constants/app_text_styles.dart';
+import 'package:flashcard_quiz_app/constants/context_extensions.dart';
 import 'package:flutter/material.dart';
 
 enum OptionState {
@@ -29,7 +30,7 @@ class OptionTile extends StatelessWidget {
       state == OptionState.selectedWrong ||
       state == OptionState.correctReveal;
 
-  Color get _borderColor {
+  Color _borderColor(BuildContext context) {
     switch (state) {
       case OptionState.selectedCorrect:
       case OptionState.correctReveal:
@@ -38,11 +39,11 @@ class OptionTile extends StatelessWidget {
         return AppColors.error;
       case OptionState.normal:
       case OptionState.disabled:
-        return AppColors.border;
+        return context.colorBorder;
     }
   }
 
-  Color get _backgroundColor {
+  Color _backgroundColor(BuildContext context) {
     switch (state) {
       case OptionState.selectedCorrect:
       case OptionState.correctReveal:
@@ -51,7 +52,7 @@ class OptionTile extends StatelessWidget {
         return AppColors.error.withOpacity(0.08);
       case OptionState.normal:
       case OptionState.disabled:
-        return AppColors.surface;
+        return context.colorSurface;
     }
   }
 
@@ -102,10 +103,10 @@ class OptionTile extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            color: _backgroundColor,
+            color: _backgroundColor(context),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: _borderColor,
+              color: _borderColor(context),
               width: _isColored ? 1.5 : 1,
             ),
           ),
@@ -132,7 +133,7 @@ class OptionTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(child: Text(text, style: AppTextStyles.body)),
+              Expanded(child: Text(text, style: AppTextStyles.body(context))),
               if (trailing != null) trailing,
             ],
           ),

@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'constants/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'constants/app_theme.dart';
+import 'providers/app_provider.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AppProvider()..load(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -12,26 +18,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = context.watch<AppProvider>().isDarkMode;
+
     return MaterialApp(
       title: 'QuizDeck',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.background,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
-        ),
-        textTheme: GoogleFonts.interTextTheme(),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          iconTheme: IconThemeData(color: AppColors.textPrimary),
-        ),
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home: const SplashScreen(),
     );
   }

@@ -1,15 +1,21 @@
 import 'package:flashcard_quiz_app/constants/app_colors.dart';
 import 'package:flashcard_quiz_app/constants/app_text_styles.dart';
 import 'package:flashcard_quiz_app/screens/flashcard_screen.dart';
+import 'package:flashcard_quiz_app/screens/home_screen.dart';
 import 'package:flashcard_quiz_app/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
 
 class QuizResultScreen extends StatelessWidget {
+  final String deckId;
   final int score;
   final int total;
 
-  const QuizResultScreen({super.key, required this.score, required this.total});
+  const QuizResultScreen({
+    super.key,
+    required this.deckId,
+    required this.score,
+    required this.total,
+  });
 
   double get _percentage => total == 0 ? 0 : score / total;
 
@@ -72,13 +78,13 @@ class QuizResultScreen extends StatelessWidget {
               const SizedBox(height: 28),
               Text(
                 _message,
-                style: AppTextStyles.heading1,
+                style: AppTextStyles.heading1(context),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 'You answered $score out of $total questions correctly.',
-                style: AppTextStyles.bodySecondary,
+                style: AppTextStyles.bodySecondary(context),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
@@ -89,7 +95,9 @@ class QuizResultScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (_) => const FlashcardScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => FlashcardScreen(deckId: deckId),
+                    ),
                   );
                 },
               ),
